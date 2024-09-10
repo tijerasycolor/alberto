@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ADMIN</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.2/socket.io.min.js"></script>
+  <link rel="stylesheet" href="main.css">
+  <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+  <script src="https://kit.fontawesome.com/b3c2168b69.js" crossorigin="anonymous"></script>
+</head>
+<body>
+  <nav>
+    <div class="menu-bar">
+      <div class="menu">
+        <ul>
+          <li><a href="/"><i class="bx bx-menu" id="ico"></i></a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+  <div class="contenedor__cards">
+    <div class="cards">
+      <div class="cover__card">
+        <h2>Peluquería</h2>
+      </div>
+      <form id="peluqueros-form">
+        <input type="text" name="worker" placeholder="Nuevo Profesional..." required>
+        <button type="submit">Agregar</button>
+      </form>
+      <ul id="peluqueros-list" class="worker-list"></ul>
+    </div>
+    <div class="cards">
+      <div class="cover__card">
+        <h2>Manicure</h2>
+      </div>
+      <form id="manicure-form">
+        <input type="text" name="worker" placeholder="Nuevo Profesional..." required>
+        <button type="submit">Agregar</button>
+      </form>
+      <ul id="manicure-list" class="worker-list"></ul>
+    </div>
+  </div>
+  <script>
+    const socket = io();
+
+    socket.on('updateList', (data) => {
+      updateWorkerList('peluqueros', data.peluqueros);
+      updateWorkerList('manicure', data.manicure);
+    });
+
+    function updateWorkerList(category, workers) {
+      const list = document.getElementById(category + '-list');
+      list.innerHTML = '';
+      workers.forEach(worker => {
+        const li = document.createElement('li');
+        li.innerHTML = `<button class="action-button" onclick="moveToLast('${category}', '${worker}')">${worker}</button><button class="delete-button" onclick="removeWorker('${category}', '${worker}')"><i class="bx bx-trash"></i></button>`;
+        list.appendChild(li);
+      });
+    }
+
+    function addWorker(category, form) {
+      const input = form.elements.worker;
+      const worker = input.value.trim();
+      if (worker !== '') {
+        socket.emit('addWorker', { category, worker });
+        input.value = '';
+      }
+      return false; // Prevent the form from submitting
+    }
+
+    document.getElementById('peluqueros-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      addWorker('peluqueros', this);
+    });
+
+    document.getElementById('manicure-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      addWorker('manicure', this);
+    });
+
+    function removeWorker(category, worker) {
+      socket.emit('removeWorker', { category, worker });
+    }
+
+    function moveToLast(category, worker) {
+      socket.emit('moveToLast', { category, worker });
+    }
+  </script>
+</body>
+</html>
