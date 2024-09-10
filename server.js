@@ -1,13 +1,16 @@
-// server.js
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 const fs = require('fs');
+const cors = require('cors'); // Importar el paquete CORS
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
+
+// Configurar CORS para permitir conexiones desde cualquier origen
+app.use(cors());
 
 const dataFile = path.join(__dirname, 'data.json');
 
@@ -19,7 +22,7 @@ function loadData() {
   if (fs.existsSync(dataFile)) {
     return JSON.parse(fs.readFileSync(dataFile));
   }
-  return { barberia: [], peluqueros: [], manicure: [] };
+  return { peluqueros: [], manicure: [] };
 }
 
 let workersData = loadData();
@@ -63,5 +66,5 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Servidor escuchando en puerto ${PORT}`); // Corregido
+  console.log(`Servidor escuchando en puerto ${PORT}`);
 });
